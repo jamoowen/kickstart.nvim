@@ -15,6 +15,11 @@ return {
   },
   opts = {
     filesystem = {
+      filtered_items = {
+        visible = true, -- when true, they will just be displayed differently than normal items
+        hide_dotfiles = false, -- hide files starting with .
+        hide_gitignored = false, -- hide files that are ignored by git
+      },
       window = {
         mappings = {
           ['<leader>b'] = 'close_window',

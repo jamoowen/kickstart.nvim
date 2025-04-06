@@ -39,6 +39,16 @@ vim.keymap.set('n', '<leader>wq', ':wq<CR>', { noremap = true, silent = true, de
 vim.keymap.set('n', '<leader>qq', ':q!<CR>', { noremap = true, silent = true, desc = 'Force Quit Without Saving' })
 --movement
 vim.keymap.set({ 'n', 'v' }, '1', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+--cursor
+vim.opt.termguicolors = true
+vim.api.nvim_set_hl(0, 'Cursor', { fg = '#32CD32', bg = '#32CD32' }) -- normal mode
+vim.api.nvim_set_hl(0, 'Cursor2', { fg = '#228B22', bg = '#228B22' }) -- insert mode
+vim.opt.guicursor = {
+  'n-v-c:block-Cursor/lCursor', -- block cursor with green
+  'i-ci-ve:block-Cursor2/lCursor2', -- vertical bar with lime green
+  'r-cr:hor20', -- horizontal bar for replace
+  'o:hor50', -- operator-pending
+}
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
@@ -118,7 +128,7 @@ vim.opt.confirm = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
--- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>dd', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -838,7 +848,7 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
   {
