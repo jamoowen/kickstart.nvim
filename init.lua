@@ -1035,6 +1035,20 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    event = 'VeryLazy',
+    config = function()
+      require('treesitter-context').setup {
+        enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+        max_lines = 5, -- How many lines the context window can span
+        multiline_threshold = 1, -- Show context only if it spans this many lines
+        trim_scope = 'outer', -- 'inner' or 'outer'
+        mode = 'cursor', -- 'cursor' or 'topline'
+        separator = nil, -- e.g. '─', '▁', '─▁─', '█▁█'
+      }
+    end,
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
