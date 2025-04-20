@@ -39,6 +39,7 @@ vim.keymap.set('n', '<leader>wq', ':wq<CR>', { noremap = true, silent = true, de
 vim.keymap.set('n', '<leader>qq', ':q!<CR>', { noremap = true, silent = true, desc = 'Force Quit Without Saving' })
 --movement
 vim.keymap.set({ 'n', 'v' }, '1', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+vim.keymap.set('n', '<leader>rw', ':%s/<C-r><C-w>/', { noremap = true, desc = 'Replace word under cursor' })
 --cursor
 vim.opt.termguicolors = true
 vim.api.nvim_set_hl(0, 'Cursor', { fg = '#32CD32', bg = '#32CD32' }) -- normal mode
@@ -50,7 +51,7 @@ vim.opt.guicursor = {
   'o:hor50', -- operator-pending
 }
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -391,9 +392,46 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = '[S]earch [R]esume' })
       -- vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
-      -- Slightly advanced example of overriding default behavior and theme
+      vim.keymap.set('n', '<leader>fb', function()
+        local builtin = require 'telescope.builtin'
+        local actions = require 'telescope.actions'
+        local action_state = require 'telescope.actions.state'
+        builtin.buffers {
+          initial_mode = 'normal',
+          sort_mru = true,
+          ignore_current_buffer = true,
+          show_all_buffers = false,
+          attach_mappings = function(prompt_bufnr, map)
+            -- Select buffer with 'l' or <CR>
+            map('n', 'l', actions.select_default)
+            map('n', '<CR>', actions.select_default)
+            -- Smart delete with 'd'
+            map('n', 'd', function()
+              local picker = action_state.get_current_picker(prompt_bufnr)
+              local selections = picker:get_multi_selection()
+
+              if selections and #selections > 1 then
+                for _, entry in ipairs(selections) do
+                  vim.api.nvim_buf_delete(entry.bufnr, { force = false })
+                end
+              else
+                local selection = action_state.get_selected_entry()
+                if selection then
+                  vim.api.nvim_buf_delete(selection.bufnr, { force = false })
+                end
+              end
+              actions.close(prompt_bufnr)
+              vim.schedule(function()
+                vim.cmd.normal { bang = true }
+                vim.cmd [[normal! \<leader>fb]]
+              end)
+            end)
+            return true
+          end,
+        }
+      end, { desc = '[fb] Find buffers with smart delete support' })
+
       vim.keymap.set('n', '<leader>ff', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
         builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
@@ -607,7 +645,44 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        gopls = {},
+        gopls = {
+
+          settings = {
+            gopls = {
+              gofumpt = true,
+              codelenses = {
+                gc_details = false,
+                generate = true,
+                regenerate_cgo = true,
+                run_govulncheck = true,
+                test = true,
+                tidy = true,
+                upgrade_dependency = true,
+                vendor = true,
+              },
+              hints = {
+                assignVariableTypes = true,
+                compositeLiteralFields = true,
+                compositeLiteralTypes = true,
+                constantValues = true,
+                functionTypeParameters = true,
+                parameterNames = true,
+                rangeVariableTypes = true,
+              },
+              analyses = {
+                nilness = true,
+                unusedparams = true,
+                unusedwrite = true,
+                useany = true,
+              },
+              usePlaceholders = true,
+              completeUnimported = true,
+              staticcheck = true,
+              directoryFilters = { '-.git', '-.vscode', '-.idea', '-.vscode-test', '-node_modules' },
+              semanticTokens = true,
+            },
+          },
+        },
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -618,6 +693,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
         --
+        -- elixirls = {},
 
         lua_ls = {
           -- cmd = { ... },
@@ -633,6 +709,8 @@ require('lazy').setup({
             },
           },
         },
+        jsonls = {},
+        yamlls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -907,7 +985,28 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'go',
+        'gomod',
+        'gowork',
+        'gosum',
+        'json5',
+        -- 'elixir',
+        -- 'heex',
+        -- 'eex',
+      },
+
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
