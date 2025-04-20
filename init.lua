@@ -381,32 +381,48 @@ require('lazy').setup({
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
 
-      -- See `:help telescope.builtin`
+      local actions = require 'telescope.actions'
+      local action_state = require 'telescope.actions.state'
       local builtin = require 'telescope.builtin'
-      -- vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-      -- vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>fp', builtin.find_files, { desc = '[S]earch [F]iles' })
-      -- vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-      vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = '[S]earch [R]esume' })
-      -- vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+      local themes = require 'telescope.themes'
 
+      -- Helper to wrap any picker with 'l' as select_default in normal mode
+      local with_l_mapping = function(picker, opts)
+        opts = opts or {}
+        opts.attach_mappings = function(_, map)
+          map('n', 'l', actions.select_default)
+          return true
+        end
+        picker(opts)
+      end
+
+      -- Keymaps
+      vim.keymap.set('n', '<leader>fp', function()
+        with_l_mapping(builtin.find_files)
+      end, { desc = '[F]ind [P]roject files' })
+
+      vim.keymap.set('n', '<leader>fn', function()
+        with_l_mapping(builtin.find_files, { cwd = vim.fn.stdpath 'config' })
+      end, { desc = '[F]ind [N]eovim config files' })
+
+      vim.keymap.set('n', '<leader>fg', function()
+        with_l_mapping(builtin.live_grep)
+      end, { desc = '[F]ind by [G]rep' })
+
+      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = '[F]ind current [W]ord' })
+      vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[F]ind [D]iagnostics' })
+      vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = '[F]ind [R]esume' })
+
+      -- Smart buffer picker with 'l' to select and 'd' to delete one or many
       vim.keymap.set('n', '<leader>fb', function()
-        local builtin = require 'telescope.builtin'
-        local actions = require 'telescope.actions'
-        local action_state = require 'telescope.actions.state'
         builtin.buffers {
           initial_mode = 'normal',
           sort_mru = true,
           ignore_current_buffer = true,
           show_all_buffers = false,
           attach_mappings = function(prompt_bufnr, map)
-            -- Select buffer with 'l' or <CR>
             map('n', 'l', actions.select_default)
             map('n', '<CR>', actions.select_default)
-            -- Smart delete with 'd'
             map('n', 'd', function()
               local picker = action_state.get_current_picker(prompt_bufnr)
               local selections = picker:get_multi_selection()
@@ -421,38 +437,32 @@ require('lazy').setup({
                   vim.api.nvim_buf_delete(selection.bufnr, { force = false })
                 end
               end
+
               actions.close(prompt_bufnr)
               vim.schedule(function()
-                vim.cmd.normal { bang = true }
-                vim.cmd [[normal! \<leader>fb]]
+                builtin.buffers()
               end)
             end)
             return true
           end,
         }
-      end, { desc = '[fb] Find buffers with smart delete support' })
+      end, { desc = '[F]ind [B]uffers with delete' })
 
+      -- Optional: keep your current buffer fuzzy finder
       vim.keymap.set('n', '<leader>ff', function()
-        -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+        builtin.current_buffer_fuzzy_find(themes.get_dropdown {
           winblend = 10,
           previewer = false,
         })
-      end, { desc = '[ff] Fuzzily search in current buffer' })
+      end, { desc = '[F]uzzily [F]ind in current buffer' })
 
-      -- It's also possible to pass additional configuration options.
-      --  See `:help telescope.builtin.live_grep()` for information about particular keys
+      -- Grep only open files
       vim.keymap.set('n', '<leader>f/', function()
-        builtin.live_grep {
+        with_l_mapping(builtin.live_grep, {
           grep_open_files = true,
           prompt_title = 'Live Grep in Open Files',
-        }
-      end, { desc = '[S]earch [/] in Open Files' })
-
-      -- Shortcut for searching your Neovim configuration files
-      vim.keymap.set('n', '<leader>fn', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[S]earch [N]eovim files' })
+        })
+      end, { desc = '[F]ind [/] in Open Files' })
     end,
   },
 
@@ -963,17 +973,17 @@ require('lazy').setup({
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
+      -- local statusline = require 'mini.statusline'
       -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
+      -- statusline.setup { use_icons = vim.g.have_nerd_font }
 
       -- You can configure sections in the statusline by overriding their
       -- default behavior. For example, here we set the section for
       -- cursor location to LINE:COLUMN
       ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
+      -- statusline.section_location = function()
+      -- return '%2l:%-2v'
+      -- end
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
@@ -1041,6 +1051,7 @@ require('lazy').setup({
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.alpha',
+  require 'kickstart.plugins.lualine',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
