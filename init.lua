@@ -50,6 +50,13 @@ vim.opt.guicursor = {
   'r-cr:hor20', -- horizontal bar for replace
   'o:hor50', -- operator-pending
 }
+
+--  folding stuff
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.foldenable = true
+vim.opt.foldlevelstart = 99
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -223,17 +230,29 @@ require('lazy').setup({
   -- options to `gitsigns.nvim`.
   --
   -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  {
     'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
+    config = function()
+      local gitsigns = require 'gitsigns'
+
+      gitsigns.setup {
+        signs = {
+          add = { text = '+' },
+          change = { text = '~' },
+          delete = { text = '_' },
+          topdelete = { text = '‾' },
+          changedelete = { text = '~' },
+        },
+        on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+          local map = function(mode, lhs, rhs, desc)
+            vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+          end
+          -- Your custom keymap
+          map('n', '<leader>gb', gs.toggle_current_line_blame, '[G]it [B]lame line')
+        end,
+      }
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -337,27 +356,14 @@ require('lazy').setup({
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      {
+        'nvim-telescope/telescope-live-grep-args.nvim',
+        -- This will not install any breaking changes.
+        -- For major updates, this must be adjusted manually.
+        version = '^1.0.0',
+      },
     },
     config = function()
-      -- Telescope is a fuzzy finder that comes with a lot of different things that
-      -- it can fuzzy find! It's more than just a "file finder", it can search
-      -- many different aspects of Neovim, your workspace, LSP, and more!
-      --
-      -- The easiest way to use Telescope, is to start by doing something like:
-      --  :Telescope help_tags
-      --
-      -- After running this command, a window will open up and you're able to
-      -- type in the prompt window. You'll see a list of `help_tags` options and
-      -- a corresponding preview of the help.
-      --
-      -- Two important keymaps to use while in Telescope are:
-      --  - Insert mode: <c-/>
-      --  - Normal mode: ?
-      --
-      -- This opens a window that shows you all of the keymaps for the current
-      -- Telescope picker. This is really useful to discover what Telescope can
-      -- do as well as how to actually do it!
-
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
@@ -380,6 +386,7 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'live_grep_args')
 
       local actions = require 'telescope.actions'
       local action_state = require 'telescope.actions.state'
@@ -406,8 +413,12 @@ require('lazy').setup({
       end, { desc = '[F]ind [N]eovim config files' })
 
       vim.keymap.set('n', '<leader>fg', function()
-        with_l_mapping(builtin.live_grep)
-      end, { desc = '[F]ind by [G]rep' })
+        with_l_mapping(require('telescope').extensions.live_grep_args.live_grep_args)
+      end, { desc = '[F]ind by [G]rep (with args)' })
+
+      -- vim.keymap.set('n', '<leader>fg', function()
+      --   with_l_mapping(builtin.live_grep)
+      -- end, { desc = '[F]ind by [G]rep' })
 
       vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = '[F]ind current [W]ord' })
       vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[F]ind [D]iagnostics' })
@@ -702,7 +713,7 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
-        --
+        -- solc = {},
         -- elixirls = {},
 
         lua_ls = {
@@ -941,15 +952,26 @@ require('lazy').setup({
   },
   {
     'ellisonleao/gruvbox.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    priority = 1000,
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('gruvbox').setup {}
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      require('gruvbox').setup {
+        transparent_mode = true, -- 👈 enable built-in transparency
+      }
       vim.cmd.colorscheme 'gruvbox'
+      -- Set transparency here instead of using ColorScheme autocmd
+      vim.cmd [[
+      highlight Normal       guibg=NONE ctermbg=NONE
+      highlight NormalNC     guibg=NONE ctermbg=NONE
+      highlight NormalFloat  guibg=NONE ctermbg=NONE
+      highlight FloatBorder  guibg=NONE ctermbg=NONE
+      highlight SignColumn   guibg=NONE ctermbg=NONE
+      highlight LineNr       guibg=NONE ctermbg=NONE
+      highlight VertSplit    guibg=NONE ctermbg=NONE
+      highlight EndOfBuffer  guibg=NONE ctermbg=NONE
+    ]]
     end,
-  },
-  -- Highlight todo, notes, etc in comments
+  }, -- Highlight todo, notes, etc in comments
+
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
   { -- Collection of various small independent plugins/modules
@@ -968,7 +990,17 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      require('mini.surround').setup {
+        mappings = {
+          add = 's', -- Add surrounding
+          delete = 'ds', -- Delete surrounding
+          replace = 'cs', -- Replace surrounding
+          find = '', -- Disable if you don’t want it
+          find_left = '', -- Disable if you don’t want it
+          highlight = '', -- Disable
+          update_n_lines = '', -- Disable
+        },
+      }
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
@@ -1064,9 +1096,10 @@ require('lazy').setup({
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.windsurf',
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1099,6 +1132,3 @@ require('lazy').setup({
     },
   },
 })
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
