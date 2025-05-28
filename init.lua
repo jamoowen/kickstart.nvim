@@ -433,6 +433,37 @@ require('lazy').setup({
         with_l_mapping(require('telescope').extensions.live_grep_args.live_grep_args)
       end, { desc = '[F]ind by [G]rep (with args)' })
 
+      vim.keymap.set('n', '<leader>tt', function()
+        vim.cmd 'Telescope'
+      end, { desc = '[T]elescope Main Menu' })
+
+      vim.keymap.set('n', '<leader>tc', function()
+        require('telescope.builtin').colorscheme {
+          enable_preview = true,
+          attach_mappings = function(_, map)
+            map('i', '<CR>', function(prompt_bufnr)
+              local entry = require('telescope.actions.state').get_selected_entry()
+              require('telescope.actions').close(prompt_bufnr)
+              local scheme = entry.value
+
+              -- Apply the selected colorscheme
+              vim.cmd.colorscheme(scheme)
+
+              -- Save it to kickstart/colorscheme.lua
+              local path = vim.fn.stdpath 'config' .. '/lua/kickstart/colorscheme.lua'
+              local ok, file = pcall(io.open, path, 'w')
+              if ok and file then
+                file:write(string.format("vim.cmd.colorscheme('%s')\n", scheme))
+                file:close()
+                vim.notify('Saved colorscheme: ' .. scheme)
+              else
+                vim.notify('Failed to save colorscheme', vim.log.levels.ERROR)
+              end
+            end)
+            return true
+          end,
+        }
+      end, { desc = '[T]elescope [C]olorscheme with Save' })
       -- vim.keymap.set('n', '<leader>fg', function()
       --   with_l_mapping(builtin.live_grep)
       -- end, { desc = '[F]ind by [G]rep' })
@@ -961,7 +992,6 @@ require('lazy').setup({
           comments = { italic = false }, -- Disable italics in comments
         },
       }
-
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
@@ -975,7 +1005,7 @@ require('lazy').setup({
       require('gruvbox').setup {
         transparent_mode = true, -- 👈 enable built-in transparency
       }
-      vim.cmd.colorscheme 'gruvbox'
+      -- vim.cmd.colorscheme 'gruvbox'
       -- Set transparency here instead of using ColorScheme autocmd
       vim.cmd [[
       highlight Normal       guibg=NONE ctermbg=NONE
@@ -1117,6 +1147,7 @@ require('lazy').setup({
   require 'kickstart.plugins.windsurf',
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
+  require 'kickstart.plugins.multiple_cursors',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -1150,3 +1181,5 @@ require('lazy').setup({
     },
   },
 })
+
+pcall(require, 'kickstart.colorscheme')
