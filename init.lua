@@ -35,10 +35,11 @@ vim.keymap.set('n', '<leader>l', '<C-w>l', { noremap = true, silent = true, desc
 --saving
 vim.keymap.set('n', '<leader>ww', ':w<CR>', { noremap = true, silent = true, desc = 'Save Current File' })
 vim.keymap.set('n', '<leader>wa', ':wa<CR>', { noremap = true, silent = true, desc = 'Save All Files' })
-vim.keymap.set('n', '<leader>wq', ':wq<CR>', { noremap = true, silent = true, desc = 'Save and Quit' })
-vim.keymap.set('n', '<leader>qq', ':q!<CR>', { noremap = true, silent = true, desc = 'Force Quit Without Saving' })
+vim.keymap.set('n', '<leader>wq', ':wqa<CR>', { noremap = true, silent = true, desc = 'Save All and Quit' })
+vim.keymap.set('n', '<leader>qq', ':qa<CR>', { noremap = true, silent = true, desc = 'Quit all' })
 --movement
 vim.keymap.set({ 'n', 'v' }, '1', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+vim.keymap.set('n', '<leader>rr', ':%s/', { noremap = true, desc = 'Replace word' })
 vim.keymap.set('n', '<leader>rw', ':%s/<C-r><C-w>/', { noremap = true, desc = 'Replace word under cursor' })
 --cursor
 vim.opt.termguicolors = true
@@ -136,7 +137,23 @@ vim.opt.confirm = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>dd', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>dd', function()
+  local loclist_is_open = false
+
+  -- Check if any window is a location list
+  for _, win in ipairs(vim.fn.getwininfo()) do
+    if win.loclist == 1 then
+      loclist_is_open = true
+      break
+    end
+  end
+
+  if loclist_is_open then
+    vim.cmd 'lclose'
+  else
+    vim.diagnostic.setloclist()
+  end
+end, { desc = 'Toggle diagnostic location list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -713,6 +730,7 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
+        tailwindcss = {},
         -- solc = {},
         -- elixirls = {},
 
