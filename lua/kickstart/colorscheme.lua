@@ -1,1 +1,1 @@
-vim.cmd.colorscheme('vim')
+vim.cmd.colorscheme('slate')

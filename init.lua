@@ -28,6 +28,8 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 vim.keymap.set('n', '<leader><leader>', ':', { noremap = true, desc = 'Enter Command Mode' })
+--shortcuts
+vim.keymap.set('n', '<leader>a', 'gg0VG$', { noremap = true })
 --window
 vim.keymap.set('n', '<leader>v', ':vsplit<CR>', { noremap = true, silent = true, desc = 'Split Window Vertically' })
 vim.keymap.set('n', '<leader>h', '<C-w>h', { noremap = true, silent = true, desc = 'Move to Left Window' })
@@ -39,6 +41,8 @@ vim.keymap.set('n', '<leader>wq', ':wqa<CR>', { noremap = true, silent = true, d
 vim.keymap.set('n', '<leader>qq', ':qa<CR>', { noremap = true, silent = true, desc = 'Quit all' })
 --movement
 vim.keymap.set({ 'n', 'v' }, '1', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+vim.keymap.set({ 'n', 'v' }, 'fe', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+vim.keymap.set({ 'n', 'v' }, 'fb', '0', { noremap = true, silent = true, desc = 'Go to Beginning of Line' })
 vim.keymap.set('n', '<leader>rr', ':%s/', { noremap = true, desc = 'Replace word' })
 vim.keymap.set('n', '<leader>rw', ':%s/<C-r><C-w>/', { noremap = true, desc = 'Replace word under cursor' })
 --cursor
@@ -715,7 +719,6 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         gopls = {
-
           settings = {
             gopls = {
               gofumpt = true,
@@ -760,7 +763,8 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        ts_ls = {},
+        -- ts_ls = {},
+        vtsls = {},
         tailwindcss = {},
         -- solc = {},
         -- elixirls = {},
@@ -1183,3 +1187,15 @@ require('lazy').setup({
 })
 
 pcall(require, 'kickstart.colorscheme')
+
+-- Then defer transparency fix
+vim.defer_fn(function()
+  vim.cmd [[
+    highlight Normal guibg=none
+    highlight NormalNC guibg=none
+    highlight SignColumn guibg=none
+    highlight VertSplit guibg=none
+    highlight StatusLineNC guibg=none
+    highlight NvimTreeNormal guibg=none
+  ]]
+end, 50) -- delay in ms
