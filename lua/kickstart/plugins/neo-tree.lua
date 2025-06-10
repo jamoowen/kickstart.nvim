@@ -11,7 +11,28 @@ return {
   },
   cmd = 'Neotree',
   keys = {
-    { '<leader>b', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+    {
+      '<leader>b',
+      function()
+        -- Check if Neo-tree is currently open in any tab
+        local is_open = false
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
+          if bufname:match 'neo%-tree' then
+            is_open = true
+            break
+          end
+        end
+
+        if is_open then
+          vim.cmd 'Neotree close'
+        else
+          vim.cmd 'Neotree reveal'
+        end
+      end,
+      desc = 'Toggle NeoTree',
+      silent = true,
+    },
   },
   opts = {
     filesystem = {

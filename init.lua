@@ -40,8 +40,12 @@ vim.keymap.set('n', '<leader>wa', ':wa<CR>', { noremap = true, silent = true, de
 vim.keymap.set('n', '<leader>wq', ':wqa<CR>', { noremap = true, silent = true, desc = 'Save All and Quit' })
 vim.keymap.set('n', '<leader>qq', ':qa<CR>', { noremap = true, silent = true, desc = 'Quit all' })
 --movement
+vim.keymap.set('n', 'vv', 'V', { noremap = true, silent = true, desc = 'Select current line' })
+vim.keymap.set({ 'n', 'v' }, 'J', '10j', { noremap = true, silent = true, desc = 'Jump 10 lines down' })
+vim.keymap.set({ 'n', 'v' }, 'K', '10k', { noremap = true, silent = true, desc = 'Jump 10 lines up' })
+vim.keymap.set('n', 'L', vim.lsp.buf.hover, { desc = 'LSP Hover (was K)' })
 vim.keymap.set({ 'n', 'v' }, '1', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
-vim.keymap.set({ 'n', 'v' }, 'fe', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
+vim.keymap.set({ 'n', 'v' }, 'ff', '$', { noremap = true, silent = true, desc = 'Go to End of Line' })
 vim.keymap.set({ 'n', 'v' }, 'fb', '0', { noremap = true, silent = true, desc = 'Go to Beginning of Line' })
 vim.keymap.set('n', '<leader>rr', ':%s/', { noremap = true, desc = 'Replace word' })
 vim.keymap.set('n', '<leader>rw', ':%s/<C-r><C-w>/', { noremap = true, desc = 'Replace word under cursor' })
@@ -55,7 +59,10 @@ vim.opt.guicursor = {
   'r-cr:hor20', -- horizontal bar for replace
   'o:hor50', -- operator-pending
 }
-
+--tabs
+vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
+vim.opt.softtabstop = 2 -- What you expecting
+vim.opt.shiftwidth = 2 -- What you expecting
 --  folding stuff
 vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
@@ -717,7 +724,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {},
         gopls = {
           settings = {
             gopls = {
@@ -748,7 +755,7 @@ require('lazy').setup({
                 useany = true,
               },
               usePlaceholders = true,
-              completeUnimported = true,
+              -- completeUnimported = true,
               staticcheck = true,
               directoryFilters = { '-.git', '-.vscode', '-.idea', '-.vscode-test', '-node_modules' },
               semanticTokens = true,
@@ -764,8 +771,8 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
-        vtsls = {},
-        tailwindcss = {},
+        -- vtsls = {},
+        -- tailwindcss = {},
         -- solc = {},
         -- elixirls = {},
 
@@ -803,9 +810,12 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'goimports',
+        'gofumpt',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
+      package.loaded['mason-lspconfig/features/automatic_enable'] = true
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
@@ -843,7 +853,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = false, cpp = true }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
@@ -855,6 +865,11 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        go = { 'gofumpt', 'goimports' },
+        typescript = {},
+        typescriptreact = {},
+        javascript = {},
+        javascriptreact = {},
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1073,6 +1088,10 @@ require('lazy').setup({
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    lazy = true, -- or not lazy if you're actively using it
+  },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -1084,6 +1103,8 @@ require('lazy').setup({
         'c',
         'diff',
         'html',
+        'javascript',
+        'jsdoc',
         'lua',
         'luadoc',
         'markdown',
@@ -1096,6 +1117,10 @@ require('lazy').setup({
         'gowork',
         'gosum',
         'json5',
+        'regex',
+        'toml',
+        'tsx',
+        'typescript',
         -- 'elixir',
         -- 'heex',
         -- 'eex',
@@ -1110,7 +1135,27 @@ require('lazy').setup({
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      textobjects = {
+        move = {
+          enable = true,
+          goto_next_start = { [']f'] = '@function.outer', [']c'] = '@class.outer', [']a'] = '@parameter.inner' },
+          goto_next_end = { [']F'] = '@function.outer', [']C'] = '@class.outer', [']A'] = '@parameter.inner' },
+          goto_previous_start = { ['[f'] = '@function.outer', ['[c'] = '@class.outer', ['[a'] = '@parameter.inner' },
+          goto_previous_end = { ['[F'] = '@function.outer', ['[C'] = '@class.outer', ['[A'] = '@parameter.inner' },
+        },
+        select = {
+          enable = true,
+          lookahead = true, -- automatically jump forward to textobj
+          keymaps = {
+            ['af'] = '@function.outer',
+            ['if'] = '@function.inner',
+          },
+        },
+      },
+      indent = {
+        enable = true,
+        disable = { 'ruby', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact' },
+      },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
@@ -1152,6 +1197,7 @@ require('lazy').setup({
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
   require 'kickstart.plugins.multiple_cursors',
+  require 'kickstart.plugins.typescript_tools',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -1187,7 +1233,31 @@ require('lazy').setup({
 })
 
 pcall(require, 'kickstart.colorscheme')
+-- Your existing LSP config here, e.g.:
+-- require('lspconfig').gopls.setup { ... }
 
+-- Then add this at the end of your init.lua (or inside a dedicated config file that’s loaded):
+
+-- vim.api.nvim_create_autocmd('BufWritePre', {
+--   pattern = '*.go',
+--   callback = function()
+--     local params = vim.lsp.util.make_range_params()
+--     params.context = { only = { 'source.organizeImports' } }
+--     local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 3000) -- timeout 3 sec
+--     for client_id, res in pairs(result or {}) do
+--       for _, r in pairs(res.result or {}) do
+--         if r.edit then
+--           local enc = (vim.lsp.get_client_by_id(client_id) or {}).offset_encoding or 'utf-16'
+--           vim.lsp.util.apply_workspace_edit(r.edit, enc)
+--         elseif r.command then
+--           vim.lsp.buf.execute_command(r.command)
+--         end
+--       end
+--     end
+--     vim.lsp.buf.format { async = false }
+--   end,
+-- })
+--
 -- Then defer transparency fix
 vim.defer_fn(function()
   vim.cmd [[
