@@ -807,7 +807,10 @@ require('lazy').setup({
       --
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
+      local ensure_installed = vim.tbl_filter(function(server)
+        return server ~= 'sourcekit'
+      end, vim.tbl_keys(servers or {}))
+
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'goimports',
@@ -837,11 +840,12 @@ require('lazy').setup({
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
+
     keys = {
       {
         '<leader>cf',
         function()
-          require('conform').format { async = true, lsp_format = 'fallback' }
+          format_with_fallback()
         end,
         mode = '',
         desc = '[F]ormat buffer',
@@ -854,27 +858,40 @@ require('lazy').setup({
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = false, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
+        local filetype = vim.bo[bufnr].filetype
+        if disable_filetypes[filetype] then
           return nil
+        elseif vim.tbl_contains({ 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' }, filetype) then
+          format_with_fallback()
         else
           return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
+            timeout_ms = 3000,
+            async = false, -- not recommended to change
+            quiet = false, -- not recommended to change
+            lsp_format = 'fallback', -- not recommended to change
           }
         end
       end,
       formatters_by_ft = {
+        typescript = { 'prettierd' },
+        javascript = { 'prettierd' },
+        typescriptreact = { 'prettierd' },
+        javascriptreact = { 'prettierd' },
+        html = { 'prettierd' },
+        markdown = { 'prettierd' },
         lua = { 'stylua' },
         go = { 'gofumpt', 'goimports' },
-        typescript = {},
-        typescriptreact = {},
-        javascript = {},
-        javascriptreact = {},
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        ['*'] = { 'trim_whitespace' },
+      },
+      formatters = {
+        prettierd = {
+          condition = function()
+            return vim.loop.fs_realpath '.prettierrc.js' ~= nil
+              or vim.loop.fs_realpath '.prettierrc.mjs' ~= nil
+              or vim.loop.fs_realpath '.prettier.config.js' ~= nil
+              or vim.loop.fs_realpath 'prettier.config.js' ~= nil
+          end,
+        },
       },
     },
   },
@@ -920,7 +937,20 @@ require('lazy').setup({
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+      local s = luasnip.snippet
+      local t = luasnip.text_node
+      local i = luasnip.insert_node
+
       luasnip.config.setup {}
+
+      luasnip.add_snippets('go', {
+        s('ifnil', {
+          t 'if err != nil {',
+          t { '', '\t' },
+          i(1, 'return err'),
+          t { '', '}' },
+        }),
+      })
 
       cmp.setup {
         snippet = {
@@ -1259,6 +1289,22 @@ pcall(require, 'kickstart.colorscheme')
 -- })
 --
 -- Then defer transparency fix
+
+--this is so typescript tools formats correctly ...
+function format_with_fallback()
+  local filetype = vim.bo.filetype
+  local conform = require 'conform'
+  local prettierd_available = conform.get_formatter_info('prettierd', vim.api.nvim_get_current_buf()).available
+
+  if prettierd_available then
+    conform.format { async = true, timeout_ms = 3000 }
+  elseif vim.tbl_contains({ 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' }, filetype) then
+    vim.lsp.buf.format { async = true }
+  else
+    conform.format { async = true, timeout_ms = 3000 }
+  end
+end
+
 vim.defer_fn(function()
   vim.cmd [[
     highlight Normal guibg=none
