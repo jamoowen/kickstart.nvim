@@ -13,7 +13,7 @@ return {
         lualine_a = { 'mode' },
         lualine_b = { 'branch' },
         lualine_c = {
-          { 'filename', path = 1 }, -- shows relative path
+          { 'filename', path = 2 }, -- shows relative path
           'diagnostics',
         },
         lualine_x = { 'encoding', 'fileformat', 'filetype' },

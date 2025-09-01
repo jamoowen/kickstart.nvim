@@ -24,11 +24,14 @@
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
+--
+vim.lsp.set_log_level 'debug'
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 vim.keymap.set('n', '<leader><leader>', ':', { noremap = true, desc = 'Enter Command Mode' })
 --shortcuts
+vim.keymap.set('n', '<leader>a', 'gg0VG$', { noremap = true })
 vim.keymap.set('n', '<leader>a', 'gg0VG$', { noremap = true })
 --window
 vim.keymap.set('n', '<leader>v', ':vsplit<CR>', { noremap = true, silent = true, desc = 'Split Window Vertically' })
@@ -36,9 +39,15 @@ vim.keymap.set('n', '<leader>h', '<C-w>h', { noremap = true, silent = true, desc
 vim.keymap.set('n', '<leader>l', '<C-w>l', { noremap = true, silent = true, desc = 'Move to Right Window' })
 --saving
 vim.keymap.set('n', '<leader>ww', ':w<CR>', { noremap = true, silent = true, desc = 'Save Current File' })
+vim.keymap.set('n', '<D-s>', ':w<CR>', { noremap = true, silent = true, desc = 'Save Current File' })
 vim.keymap.set('n', '<leader>wa', ':wa<CR>', { noremap = true, silent = true, desc = 'Save All Files' })
 vim.keymap.set('n', '<leader>wq', ':wqa<CR>', { noremap = true, silent = true, desc = 'Save All and Quit' })
 vim.keymap.set('n', '<leader>qq', ':qa<CR>', { noremap = true, silent = true, desc = 'Quit all' })
+-- yanking and stuff
+vim.keymap.set('n', 'yff', 'y$', { noremap = true, silent = true, desc = 'Yank to End of Line' })
+vim.keymap.set('n', 'yfb', 'y0', { noremap = true, silent = true, desc = 'Yank to Beginning of Line' })
+vim.keymap.set('n', 'dff', 'd$', { noremap = true, silent = true, desc = 'Delete to End of Line' })
+vim.keymap.set('n', 'dfb', 'd0', { noremap = true, silent = true, desc = 'Delete to Beginning of Line' })
 --movement
 vim.keymap.set('n', 'vv', 'V', { noremap = true, silent = true, desc = 'Select current line' })
 vim.keymap.set({ 'n', 'v' }, 'J', '10j', { noremap = true, silent = true, desc = 'Jump 10 lines down' })
@@ -49,6 +58,8 @@ vim.keymap.set({ 'n', 'v' }, 'ff', '$', { noremap = true, silent = true, desc = 
 vim.keymap.set({ 'n', 'v' }, 'fb', '0', { noremap = true, silent = true, desc = 'Go to Beginning of Line' })
 vim.keymap.set('n', '<leader>rr', ':%s/', { noremap = true, desc = 'Replace word' })
 vim.keymap.set('n', '<leader>rw', ':%s/<C-r><C-w>/', { noremap = true, desc = 'Replace word under cursor' })
+--plugin stuff
+vim.keymap.set('n', '<leader>ct', ':GoTagAdd ', { noremap = true, desc = 'Go add tag' })
 --cursor
 vim.opt.termguicolors = true
 vim.api.nvim_set_hl(0, 'Cursor', { fg = '#32CD32', bg = '#32CD32' }) -- normal mode
@@ -61,8 +72,8 @@ vim.opt.guicursor = {
 }
 --tabs
 vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
-vim.opt.softtabstop = 2 -- What you expecting
-vim.opt.shiftwidth = 2 -- What you expecting
+vim.opt.softtabstop = 4 -- What you expecting
+vim.opt.shiftwidth = 4 -- What you expecting
 --  folding stuff
 vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
@@ -762,7 +773,7 @@ require('lazy').setup({
             },
           },
         },
-        -- pyright = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -792,6 +803,17 @@ require('lazy').setup({
         },
         jsonls = {},
         yamlls = {},
+        sourcekit = {
+          cmd = { '/usr/bin/sourcekit-lsp' },
+          filetypes = { 'swift', 'objective-c', 'objective-cpp' },
+          capabilities = {
+            workspace = {
+              didChangeWatchedFiles = {
+                dynamicRegistration = true,
+              },
+            },
+          },
+        },
       }
 
       -- Ensure the servers and tools above are installed
@@ -833,9 +855,19 @@ require('lazy').setup({
           end,
         },
       }
+      local lspconfig = require 'lspconfig'
+
+      -- ✅ Manually configure sourcekit-lsp (since it's not installed via Mason)
+      lspconfig.sourcekit.setup {
+        cmd = { '/usr/bin/sourcekit-lsp' },
+        filetypes = { 'swift', 'objective-c', 'objective-cpp' },
+        root_dir = lspconfig.util.root_pattern('Package.swift', '.git'),
+        capabilities = capabilities,
+      }
     end,
   },
 
+  -- formatting
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -873,18 +905,25 @@ require('lazy').setup({
         end
       end,
       formatters_by_ft = {
-        typescript = { 'prettierd' },
-        javascript = { 'prettierd' },
-        typescriptreact = { 'prettierd' },
-        javascriptreact = { 'prettierd' },
+        typescript = { 'prettierdConditional' },
+        javascript = { 'prettierdConditional' },
+        typescriptreact = { 'prettierdConditional' },
+        javascriptreact = { 'prettierdConditional' },
         html = { 'prettierd' },
+        json = { 'prettierd' },
+        yaml = { 'prettierd' },
         markdown = { 'prettierd' },
         lua = { 'stylua' },
         go = { 'gofumpt', 'goimports' },
+        swift = { 'swift_format' },
         ['*'] = { 'trim_whitespace' },
       },
       formatters = {
         prettierd = {
+          command = 'prettierd',
+        },
+        prettierdConditional = {
+          command = 'prettierd',
           condition = function()
             return vim.loop.fs_realpath '.prettierrc.js' ~= nil
               or vim.loop.fs_realpath '.prettierrc.mjs' ~= nil
@@ -944,13 +983,37 @@ require('lazy').setup({
       luasnip.config.setup {}
 
       luasnip.add_snippets('go', {
-        s('ifnil', {
+        s('iferr', {
           t 'if err != nil {',
           t { '', '\t' },
           i(1, 'return err'),
           t { '', '}' },
         }),
       })
+
+      local docstringSnippet = s('doc', {
+        t { '/**', ' * @' },
+        i(1, 'TODO'),
+        t { '', ' */' },
+      })
+
+      -- Shared try/catch snippet
+      local tryCatchSnippet = s('try', {
+        t 'try {',
+        t { '', '\t' },
+        i(1, '// code here'),
+        t { '', '} catch (' },
+        i(2, 'error'),
+        t ') {',
+        t { '', '\t' },
+        i(3, '// handle error'),
+        t { '', '}' },
+      })
+
+      -- JavaScript & TypeScript snippets
+      for _, ft in ipairs { 'javascript', 'typescript', 'javascriptreact', 'typescriptreact' } do
+        luasnip.add_snippets(ft, { tryCatchSnippet, docstringSnippet })
+      end
 
       cmp.setup {
         snippet = {
@@ -1054,21 +1117,87 @@ require('lazy').setup({
       require('gruvbox').setup {
         transparent_mode = true, -- 👈 enable built-in transparency
       }
-      -- vim.cmd.colorscheme 'gruvbox'
-      -- Set transparency here instead of using ColorScheme autocmd
-      vim.cmd [[
-      highlight Normal       guibg=NONE ctermbg=NONE
-      highlight NormalNC     guibg=NONE ctermbg=NONE
-      highlight NormalFloat  guibg=NONE ctermbg=NONE
-      highlight FloatBorder  guibg=NONE ctermbg=NONE
-      highlight SignColumn   guibg=NONE ctermbg=NONE
-      highlight LineNr       guibg=NONE ctermbg=NONE
-      highlight VertSplit    guibg=NONE ctermbg=NONE
-      highlight EndOfBuffer  guibg=NONE ctermbg=NONE
-    ]]
     end,
   }, -- Highlight todo, notes, etc in comments
-
+  {
+    'embark-theme/vim', -- 👈 This is the Embark theme
+    name = 'embark',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.cmd.colorscheme 'embark' -- Load the theme
+    end,
+  },
+  {
+    'ribru17/bamboo.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('bamboo').setup {
+        -- optional configuration here
+      }
+      require('bamboo').load()
+    end,
+  },
+  {
+    'rebelot/kanagawa.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('kanagawa').setup {
+        -- optional configuration here
+      }
+      require('kanagawa').load()
+    end,
+  },
+  {
+    'sainnhe/everforest',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.g.everforest_enable_italic = true
+    end,
+  },
+  {
+    'Mofiqul/dracula.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('dracula').setup {
+        -- optional configuration here
+      }
+      require('dracula').load()
+    end,
+  },
+  {
+    'eldritch-theme/eldritch.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
+  {
+    'srcery-colors/srcery-vim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
+  {
+    'olimorris/onedarkpro.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
+  {
+    'xero/miasma.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.cmd 'colorscheme miasma'
+    end,
+  },
+  { 'shaunsingh/moonlight.nvim', name = 'moonlight', lazy = false, priority = 1000 },
+  { 'bluz71/vim-moonfly-colors', name = 'moonfly', lazy = false, priority = 1000 },
+  { 'datsfilipe/vesper.nvim', name = 'vesper', lazy = false, priority = 1000 },
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
   { -- Collection of various small independent plugins/modules
@@ -1151,6 +1280,9 @@ require('lazy').setup({
         'toml',
         'tsx',
         'typescript',
+        'ninja',
+        'rst',
+        'swift',
         -- 'elixir',
         -- 'heex',
         -- 'eex',
@@ -1158,6 +1290,7 @@ require('lazy').setup({
 
       -- Autoinstall languages that are not installed
       auto_install = true,
+      incremental_selection = { enable = true },
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
@@ -1223,12 +1356,16 @@ require('lazy').setup({
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.windsurf',
+  -- require 'kickstart.plugins.windsurf',
+  require 'kickstart.plugins.copilot',
+  require 'kickstart.plugins.copilot-chat',
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
   require 'kickstart.plugins.multiple_cursors',
   require 'kickstart.plugins.typescript_tools',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gopher',
+  require 'kickstart.plugins.grug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1262,39 +1399,24 @@ require('lazy').setup({
   },
 })
 
+-- Load colorscheme early
 pcall(require, 'kickstart.colorscheme')
+
+-- Defer highlight changes until after colorscheme applies
+vim.defer_fn(function()
+  vim.api.nvim_set_hl(0, 'Comment', { fg = '#ccddee', italic = true })
+end, 100)
+
 -- Your existing LSP config here, e.g.:
 -- require('lspconfig').gopls.setup { ... }
 
 -- Then add this at the end of your init.lua (or inside a dedicated config file that’s loaded):
 
--- vim.api.nvim_create_autocmd('BufWritePre', {
---   pattern = '*.go',
---   callback = function()
---     local params = vim.lsp.util.make_range_params()
---     params.context = { only = { 'source.organizeImports' } }
---     local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 3000) -- timeout 3 sec
---     for client_id, res in pairs(result or {}) do
---       for _, r in pairs(res.result or {}) do
---         if r.edit then
---           local enc = (vim.lsp.get_client_by_id(client_id) or {}).offset_encoding or 'utf-16'
---           vim.lsp.util.apply_workspace_edit(r.edit, enc)
---         elseif r.command then
---           vim.lsp.buf.execute_command(r.command)
---         end
---       end
---     end
---     vim.lsp.buf.format { async = false }
---   end,
--- })
---
--- Then defer transparency fix
-
 --this is so typescript tools formats correctly ...
 function format_with_fallback()
   local filetype = vim.bo.filetype
   local conform = require 'conform'
-  local prettierd_available = conform.get_formatter_info('prettierd', vim.api.nvim_get_current_buf()).available
+  local prettierd_available = conform.get_formatter_info('prettierdConditional', vim.api.nvim_get_current_buf()).available
 
   if prettierd_available then
     conform.format { async = true, timeout_ms = 3000 }

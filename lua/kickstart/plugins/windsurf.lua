@@ -2,6 +2,10 @@ return {
   'Exafunction/windsurf.vim',
   config = function()
     -- Change '<C-g>' here to any keycode you like.
+
+    vim.keymap.set('n', '<leader>tw', function()
+      vim.cmd 'Codeium Toggle'
+    end, { desc = '[T]oggle Windsurf' })
     vim.keymap.set('i', '<C-g>', function()
       return vim.fn['codeium#Accept']()
     end, { expr = true, silent = true })
