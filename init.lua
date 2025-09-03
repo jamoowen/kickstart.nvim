@@ -1358,7 +1358,7 @@ require('lazy').setup({
   require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.windsurf',
   require 'kickstart.plugins.copilot',
-  require 'kickstart.plugins.copilot-chat',
+  -- require 'kickstart.plugins.copilot-chat',
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
   require 'kickstart.plugins.multiple_cursors',

@@ -1,0 +1,86 @@
+" Set space as leader key
+let mapleader = " "
+
+Plug 'tpope/vim-surround'
+Plug 'terryma/vim-multiple-cursors'
+
+" Allow highlighting of words in insert mode (like vscode does)
+set selectmode=key
+set keymodel+=startsel,stopsel,stopselect
+set surround
+set highlightedyank
+set clipboard=unnamed
+
+" Highlight yank in orange with quicker timeout
+let g:highlightedyank_highlight_duration = "150"
+let g:highlightedyank_highlight_color = "rgba(255, 100, 20, 128)" " deeper orange
+let g:highlightedyank_highlight_foreground_color = "rgba(0, 0, 0, 255)"" Remap '1' to go to end of line
+
+nmap 1 $
+xmap 1 $
+
+nnoremap vv V
+
+nnoremap fb 0
+xnoremap fb 0
+
+nnoremap ff $
+xnoremap ff $
+
+nnoremap J 9j
+xnoremap J 9j
+
+nnoremap K 9k
+xnoremap K 9k
+
+nnoremap yff y$
+xnoremap yff y$
+nnoremap dff d$
+xnoremap dff d$
+
+nnoremap yfb y0
+xnoremap yfb y0
+nnoremap dfb d0
+xnoremap dfb d0
+
+set guicursor=n-v-c:block,i:block-blinkon500
+
+nnoremap L :action QuickJavaDoc<CR>
+
+nnoremap <leader>ww :action ReformatCode<CR>:action SaveAll<CR>
+
+" Comment/uncomment current line with <leader>gcc
+nmap gcc :action CommentByLineComment<CR>
+
+" Comment/uncomment selected lines in visual mode with gc
+vmap gc :action CommentByLineComment<CR>
+
+" <leader>ff -> Find in current file
+nnoremap <leader>ff :action Find<CR>
+
+" <leader><leader> -> Command Palette
+nnoremap <leader><leader> :
+" <leader>fp -> Find project files
+nnoremap <leader>fp :action SearchEverywhere<CR>
+" Split vertically with <leader>v
+nmap <leader>v :vsplit<CR>
+
+" Navigate between splits with <leader>h/l
+nmap <leader>h <C-w>h
+nmap <leader>l <C-w>l
+
+nnoremap <leader>rn :action RefactorRename<CR>
+nnoremap <leader>rw :%s/<C-r><C-w>
+" Surround a word in parentheses with 'saiw'
+vmap s S
+
+" Multiple cursors mappings
+nmap <C-n> <Plug>NextWholeOccurrence
+xmap <C-n> <Plug>NextWholeOccurrence
+nmap g<C-n> <Plug>NextOccurrence
+xmap g<C-n> <Plug>NextOccurrence
+xmap <C-x> <Plug>SkipOccurrence
+xmap <C-p> <Plug>RemoveOccurrence
+nmap <leader><C-n> <Plug>AllWholeOccurrences
+xmap <leader><C-n> <Plug>AllWholeOccurrences
+nmap <leader>g<C-n> <Plug>AllOccurrences
