@@ -47,6 +47,8 @@ theme=Aura
 background-opacity=0.9
 keybind = cmd+left=previous_tab
 keybind = cmd+right=next_tab
+keybind = cmd+backspace=next_tab
+keybind = cmd+x=text:\x63\x64\x20\x7e\x0d
 keybind = cmd+shift+j=toggle_quick_terminal
 keybind = cmd+enter=toggle_split_zoom
 keybind = cmd+l=goto_split:right
