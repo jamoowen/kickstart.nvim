@@ -1,23 +1,21 @@
-# kickstart.nvim
 
-## Introduction
 
-A starting point for Neovim that is:
+## other dotfiles
+.ideavimrc
+.zshrc
+ghostty.txt (config for ghostty terminal)
 
-* Small
-* Single-file
-* Completely Documented
+first time? chmod -R +x commands
 
-**NOT** a Neovim distribution, but instead a starting point for your configuration.
+## to copy the dotfile from this repo to the correct location
+```sh
+./commands/<file>-download.sh
+```
 
-## Installation
-
-### Install Neovim
-
-Kickstart.nvim targets *only* the latest
-['stable'](https://github.com/neovim/neovim/releases/tag/stable) and latest
-['nightly'](https://github.com/neovim/neovim/releases/tag/nightly) of Neovim.
-If you are experiencing issues, please make sure you have the latest versions.
+## to upload the dotfile from its local location to this repo
+```sh
+./commands/<file>-upload.sh
+```
 
 ### Install External Dependencies
 
