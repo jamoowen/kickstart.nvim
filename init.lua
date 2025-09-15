@@ -71,9 +71,9 @@ vim.opt.guicursor = {
   'o:hor50', -- operator-pending
 }
 --tabs
-vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
-vim.opt.softtabstop = 4 -- What you expecting
-vim.opt.shiftwidth = 4 -- What you expecting
+vim.opt.tabstop = 4 -- Always 8 (see :h tabstop)
+vim.opt.softtabstop = 2 -- What you expecting
+vim.opt.shiftwidth = 2 -- What you expecting
 --  folding stuff
 vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
@@ -736,44 +736,44 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        gopls = {
-          settings = {
-            gopls = {
-              gofumpt = true,
-              codelenses = {
-                gc_details = false,
-                generate = true,
-                regenerate_cgo = true,
-                run_govulncheck = true,
-                test = true,
-                tidy = true,
-                upgrade_dependency = true,
-                vendor = true,
-              },
-              hints = {
-                assignVariableTypes = true,
-                compositeLiteralFields = true,
-                compositeLiteralTypes = true,
-                constantValues = true,
-                functionTypeParameters = true,
-                parameterNames = true,
-                rangeVariableTypes = true,
-              },
-              analyses = {
-                nilness = true,
-                unusedparams = true,
-                unusedwrite = true,
-                useany = true,
-              },
-              usePlaceholders = true,
-              -- completeUnimported = true,
-              staticcheck = true,
-              directoryFilters = { '-.git', '-.vscode', '-.idea', '-.vscode-test', '-node_modules' },
-              semanticTokens = true,
-            },
-          },
-        },
-        pyright = {},
+        -- gopls = {
+        --   settings = {
+        --     gopls = {
+        --       gofumpt = true,
+        --       codelenses = {
+        --         gc_details = false,
+        --         generate = true,
+        --         regenerate_cgo = true,
+        --         run_govulncheck = true,
+        --         test = true,
+        --         tidy = true,
+        --         upgrade_dependency = true,
+        --         vendor = true,
+        --       },
+        --       hints = {
+        --         assignVariableTypes = true,
+        --         compositeLiteralFields = true,
+        --         compositeLiteralTypes = true,
+        --         constantValues = true,
+        --         functionTypeParameters = true,
+        --         parameterNames = true,
+        --         rangeVariableTypes = true,
+        --       },
+        --       analyses = {
+        --         nilness = true,
+        --         unusedparams = true,
+        --         unusedwrite = true,
+        --         useany = true,
+        --       },
+        --       usePlaceholders = true,
+        --       -- completeUnimported = true,
+        --       staticcheck = true,
+        --       directoryFilters = { '-.git', '-.vscode', '-.idea', '-.vscode-test', '-node_modules' },
+        --       semanticTokens = true,
+        --     },
+        --   },
+        -- },
+        -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -803,17 +803,17 @@ require('lazy').setup({
         },
         jsonls = {},
         yamlls = {},
-        sourcekit = {
-          cmd = { '/usr/bin/sourcekit-lsp' },
-          filetypes = { 'swift', 'objective-c', 'objective-cpp' },
-          capabilities = {
-            workspace = {
-              didChangeWatchedFiles = {
-                dynamicRegistration = true,
-              },
-            },
-          },
-        },
+        -- sourcekit = {
+        --   cmd = { '/usr/bin/sourcekit-lsp' },
+        --   filetypes = { 'swift', 'objective-c', 'objective-cpp' },
+        --   capabilities = {
+        --     workspace = {
+        --       didChangeWatchedFiles = {
+        --         dynamicRegistration = true,
+        --       },
+        --     },
+        --   },
+        -- },
       }
 
       -- Ensure the servers and tools above are installed
@@ -835,8 +835,8 @@ require('lazy').setup({
 
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
-        'goimports',
-        'gofumpt',
+        -- 'goimports',
+        -- 'gofumpt',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1045,8 +1045,24 @@ require('lazy').setup({
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
           ['<CR>'] = cmp.mapping.confirm { select = true },
-          ['<Tab>'] = cmp.mapping.select_next_item(),
-          ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          ['<Tab>'] = cmp.mapping(function(fallback)
+            local copilot = require 'copilot.suggestion'
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif copilot.is_visible() then
+              copilot.accept()
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
+
+          ['<S-Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
 
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
@@ -1364,7 +1380,7 @@ require('lazy').setup({
   require 'kickstart.plugins.multiple_cursors',
   require 'kickstart.plugins.typescript_tools',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-  require 'kickstart.plugins.gopher',
+  -- require 'kickstart.plugins.gopher',
   require 'kickstart.plugins.grug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -1437,3 +1453,5 @@ vim.defer_fn(function()
     highlight NvimTreeNormal guibg=none
   ]]
 end, 50) -- delay in ms
+
+vim.env.PATH = os.getenv 'HOME' .. '/.local/share/fnm/current/bin:' .. vim.env.PATH
