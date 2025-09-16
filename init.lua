@@ -1045,12 +1045,16 @@ require('lazy').setup({
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
           ['<CR>'] = cmp.mapping.confirm { select = true },
+
+          -- ai autocomplete
+          -- windsurf version
           ['<Tab>'] = cmp.mapping(function(fallback)
-            local copilot = require 'copilot.suggestion'
             if cmp.visible() then
+              -- cycle forward in nvim-cmp menu
               cmp.select_next_item()
-            elseif copilot.is_visible() then
-              copilot.accept()
+            elseif vim.fn['codeium#GetStatusString']() == 'ON' and vim.fn['codeium#GetDisplayedSuggestion']() ~= '' then
+              -- accept Windsurf/Codeium suggestion
+              vim.api.nvim_feedkeys(vim.fn['codeium#Accept'](), 'n', true)
             else
               fallback()
             end
@@ -1058,11 +1062,34 @@ require('lazy').setup({
 
           ['<S-Tab>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
+              -- cycle backward in nvim-cmp menu
               cmp.select_prev_item()
+            elseif vim.fn['codeium#GetStatusString']() == 'ON' and vim.fn['codeium#GetDisplayedSuggestion']() ~= '' then
+              -- cycle backwards through Windsurf/Codeium suggestions
+              vim.api.nvim_feedkeys(vim.fn['codeium#CycleCompletions'](-1), 'n', true)
             else
               fallback()
             end
           end, { 'i', 's' }),
+          -- copilot version
+          -- ['<Tab>'] = cmp.mapping(function(fallback)
+          --   local copilot = require 'copilot.suggestion'
+          --   if cmp.visible() then
+          --     cmp.select_next_item()
+          --   elseif copilot.is_visible() then
+          --     copilot.accept()
+          --   else
+          --     fallback()
+          --   end
+          -- end, { 'i', 's' }),
+          --
+          -- ['<S-Tab>'] = cmp.mapping(function(fallback)
+          --   if cmp.visible() then
+          --     cmp.select_prev_item()
+          --   else
+          --     fallback()
+          --   end
+          -- end, { 'i', 's' }),
 
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
@@ -1372,8 +1399,8 @@ require('lazy').setup({
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.windsurf',
-  require 'kickstart.plugins.copilot',
+  require 'kickstart.plugins.windsurf',
+  -- require 'kickstart.plugins.copilot',
   -- require 'kickstart.plugins.copilot-chat',
   require 'kickstart.plugins.alpha',
   require 'kickstart.plugins.lualine',
@@ -1382,6 +1409,7 @@ require('lazy').setup({
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   -- require 'kickstart.plugins.gopher',
   require 'kickstart.plugins.grug',
+  require 'kickstart.plugins.markdown',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
