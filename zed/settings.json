@@ -1,0 +1,117 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "lsp": {
+    "yaml-language-server": {
+      "settings": {
+        "yaml": {
+          "keyOrdering": true,
+          "format": {
+            "singleQuote": false
+          },
+          "editor": {
+            "tabSize": 2
+          }
+        }
+      }
+    },
+    "vtsls": {
+      "settings": {
+        "javascript": {
+          "preferences": {
+            "importModuleSpecifier": "project-relative"
+          }
+        },
+        "typescript": {
+          "preferences": {
+            "importModuleSpecifier": "project-relative"
+          }
+        }
+      }
+    }
+  },
+  "project_panel": {
+    "auto_fold_dirs": false
+  },
+  "icon_theme": "Bearded Icon Theme",
+  "tab_size": 2,
+  "tabs": {
+    "file_icons": true,
+    "show_diagnostics": "all",
+    "git_status": true
+  },
+  "languages": {
+    "YAML": {
+      "formatter": "language_server"
+    },
+    "JavaScript": {
+      "formatter": "prettier"
+    },
+    "TypeScript": {
+      "formatter": [
+        {
+          "code_actions": {
+            // Use ESLint's --fix:
+            "source.fixAll.eslint": true
+          }
+        }
+        // ,"prettier"
+      ]
+    },
+    "TSX": {
+      "formatter": "prettier"
+    }
+  },
+  "features": {
+    "edit_prediction_provider": "zed"
+  },
+  "agent": {
+    "default_profile": "ask",
+    "use_modifier_to_send": false,
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-3-7-sonnet-latest"
+    },
+    "single_file_review": true
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "cursor_shape": "block",
+  "cursor_blink": false,
+  "theme": {
+    "mode": "system",
+    "light": "Gruvbox Dark Hard",
+    "dark": "Gruvbox Dark"
+  },
+  "vim_mode": true
+  // "experimental.theme_overrides": {
+  //     "renamed.background": "#FFFFFF20",
+  //     "search.match_background": "#FFFFFF20",
+  //     "ghost_element.background": "#00000010",
+  //     "ghost_element.hover": "#00000099",
+  //     "background.appearance": "transparent",
+  //     "background": "#000000CC",
+  //     "editor.background": "#00000010",
+  //     "editor.gutter.background": "#00000010",
+  //     "title_bar.background": "#000000DF",
+  //     "toolbar.background": "#00000010",
+  //     "terminal.background": "#00000000",
+  //     "status_bar.background": "#000000DF",
+  //     "tab.active_background": "#000000",
+  //     "tab.inactive_background": "#00000000",
+  //     "tab_bar.background": "#00000010",
+  //     "border": "#00000000",
+  //     "border.variant": "#00000000",
+  //     "scrollbar.track.border": "#00000000",
+  //     "scrollbar.track.background": "#00000000",
+  //     "scrollbar.thumb.background": "#00000000",
+  //     "scrollbar.thumb.border": "#FFFFFF90",
+  //     "editor.active_line.background": "#00000000"
+  // }
+}

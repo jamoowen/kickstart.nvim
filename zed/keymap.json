@@ -1,0 +1,98 @@
+[
+    {
+        "context": "editor && !menu",
+        "bindings": {
+            "ctrl r t": [
+                "task::Spawn",
+                { "task_name": "Run Jest Current File" }
+            ]
+        }
+    },
+    {
+        "context": "menu"
+    },
+    {
+        "context": "Workspace",
+        "bindings": {
+            "cmd y": "editor::SelectAll"
+        }
+    },
+    {
+        "context": "Editor",
+        "bindings": {
+            "g c c": "editor::ToggleComments"
+        }
+    },
+    {
+        "context": "Editor && (showing_code_actions || showing_completions)",
+        "bindings": {
+            "tab": "editor::ContextMenuNext"
+        }
+    },
+    {
+        "context": "Editor && (vim_mode == normal || vim_mode == visual) && !VimWaiting && !menu",
+        "bindings": {
+            "space f f": "editor::FindAllReferences",
+            "space f p": "file_finder::Toggle",
+            "space h": "workspace::ActivatePreviousPane",
+            "space l": "workspace::ActivateNextPane",
+            "space v": "pane::SplitRight",
+            "K": ["workspace::SendKeystrokes", "1 0 k"],
+            "J": ["workspace::SendKeystrokes", "1 0 j"],
+            "L": "editor::Hover",
+            "space a": "editor::SelectAll",
+            "space r n": "editor::Rename",
+            "z p b": "vim::StartOfParagraph",
+            "z p e": "vim::EndOfParagraph",
+            "f f": "vim::EndOfLine",
+            "f b": "editor::MoveToBeginningOfLine",
+            "g c": "editor::ToggleComments"
+        }
+    },
+    {
+        "context": "Editor && (vim_mode == normal || vim_mode == visual) && !VimWaiting && ProjectPanel==open",
+        "bindings": {
+            "cmd b": "project_panel::Open"
+        }
+    },
+    {
+        "context": "ProjectPanel",
+        "bindings": {
+            "space l": ["workspace::SendKeystrokes", "escape"]
+        }
+    },
+    {
+        "context": "Editor && vim_mode == normal",
+        "bindings": {
+            "v v": "editor::SelectLine",
+            "v i w": ["workspace::SendKeystrokes", "b v e"],
+            "v a p": ["workspace::SendKeystrokes", "z p b v z p e"],
+            "g r": "editor::FindAllReferences",
+            "space space": "command_palette::Toggle",
+            "space I": ["workspace::SendKeystrokes", "w i ctrl-space"]
+        }
+    },
+    {
+        "context": "Editor && vim_mode == visual",
+        "bindings": {
+            "s": "vim::PushAddSurrounds"
+        }
+    },
+    {
+        "context": "Editor && vim_mode == insert",
+        "bindings": {
+            "j k": "vim::NormalBefore"
+        }
+    },
+    {
+        "context": "vim_operator == a || vim_operator == i || vim_operator == cs",
+        "bindings": {
+            // Traditional Vim behavior
+            "q": "vim::AnyQuotes",
+            "b": "vim::AnyBrackets",
+            // mini.ai plugin behavior
+            "Q": "vim::MiniQuotes",
+            "B": "vim::MiniBrackets"
+        }
+    }
+]
